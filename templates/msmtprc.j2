@@ -1,0 +1,27 @@
+# Set default values for all following accounts.
+defaults
+logfile        /var/log/msmtp.log
+aliases        /etc/aliases
+
+# Use the mail submission port 587 instead of the SMTP port 25.
+port 587
+
+# Always use TLS.
+tls on
+
+# A freemail service
+account defaultaccount
+
+# Host name of the SMTP server
+host {{ ICINGA2_SMTP_HOST }}
+
+# Envelope-from address
+from {{ ICINGA2_SMTP_FROM }}
+
+# Authentication. The password is given using one of five methods, see below.
+auth on
+user {{ ICINGA2_SMTP_USER }}
+password {{ ICINGA2_SMTP_PASS }}
+
+# Set a default account
+account default : defaultaccount

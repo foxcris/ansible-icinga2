@@ -1,0 +1,11 @@
+
+- name: setup server
+  include_tasks: setup_server.yaml
+
+- name: setup director
+  include_tasks: setup_director.yaml
+  when: ICINGA2_SETUP_DIRECTOR
+
+- name: setup agent
+  include_tasks: setup_agent.yaml
+  when: ICINGA2_SETUP_AGENT

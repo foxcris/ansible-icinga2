@@ -1,0 +1,44 @@
+---
+
+  - include_role:
+      name: ansible_icinga
+    vars:
+      icinga_url: 'https://{{ ICINGA2_FQDN }}'
+      icinga_user: '{{ ICINGA2_ICINGAWEB2_ADMIN_USER }}'
+      icinga_pass: '{{ ICINGA2_ICINGAWEB2_ADMIN_PASS }}'
+      icinga_timeperiods:
+        - timeperiod_object:
+          - "8x5"
+          ranges:
+            monday: "09:00-17:00"
+            tuesday: "09:00-17:00"
+            wednesday: "09:00-17:00"
+            thursday: "09:00-17:00"
+            friday: "09:00-17:00"
+        - timeperiod_object:
+          - "24x7"
+          ranges:
+            monday: "00:00-24:00"
+            tuesday: "00:00-24:00"
+            wednesday: "00:00-24:00"
+            thursday: "00:00-24:00"
+            friday: "00:00-24:00"
+            saturday: "00:00-24:00"
+            sunday: "00:00-24:00"
+      icinga_users:
+        - user_object:
+          - "service_abbreviation_email_24x7"
+          pager: "SIP/xxx"
+          email: "service_abbreviation@example.com"
+        - user_object:
+          - "service_abbreviation_8x5"
+          email: "service_abbreviation@example.com"
+      icinga_hostgroups:
+        - hostgroup_object:
+            - Linux Server
+            - Windows Server
+            - Linux Clinet
+            - Windows Client
+            - Switch
+            - Firewall
+            - Router"

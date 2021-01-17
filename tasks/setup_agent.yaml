@@ -1,0 +1,73 @@
+---
+
+  - name: Debian - Install apt-transport-https
+    become: yes
+    apt:
+      name: apt-transport-https
+      state: present
+
+  - name: Debian - Add Icinga 2 repository key
+    become: yes
+    apt_key:
+      url: "{{ ICINGA2_APT_KEY }}"
+      state: present
+
+  - name: Debian - Add Icinga 2 repository
+    become: yes
+    apt_repository:
+      repo: "{{ ICINGA2_APT_URL }}"
+      state: present
+
+  - name: Install icinga2
+    become: yes
+    apt:
+      name: ['icinga2', 'monitoring-plugins']
+      update_cache: true
+      state: present
+
+  - name: Check if host of the icinga server is defined
+    assert:
+      that:
+        - ICINGA2_SERVER_HOST != ''
+      fail_msg: "Please define ICINGA2_SERVER_HOST"
+    when: not ICINGA2_SETUP_SERVER and ICINGA2_SETUP_AGENT
+
+# #https://www.netways.de/blog/2019/08/08/ansible-icinga-2-monitoringlove/
+#   - name: Icinga master cert
+#     copy:
+#       dest: /var/cache/icinga2/trusted.crt
+#       owner: icinga
+#       group: icinga
+#       mode: '0644'
+#       src: '{{ ICINGA2_LOCAL_DATA_DIR }}/aklimov-icinga2-0/var/lib/icinga2/certs/aklimov-icinga2-0.crt'
+#   - name: Icinga PKI ticket
+#     copy:
+#       dest: /var/cache/icinga2/my.ticket
+#       owner: icinga
+#       group: icinga
+#       mode: '0600'
+#       src: '.tempfiles/aklimov-icinga2-0/var/cache/icinga2/{{ inventory_hostname }}.ticket'
+#   - name: Icinga 2 cluster setup
+#     shell: >
+#       icinga2 node setup
+#       --zone {{ inventory_hostname }}
+#       --endpoint aklimov-icinga2-0,{{ hostvars['aklimov-icinga2-0'].ansible_all_ipv4_addresses[0] }},5665
+#       --parent_host {{ hostvars['aklimov-icinga2-0'].ansible_all_ipv4_addresses[0] }},5665
+#       --parent_zone master
+#       --listen 0.0.0.0,5665
+#       --ticket `cat /var/cache/icinga2/my.ticket`
+#       --trustedcert /var/cache/icinga2/trusted.crt
+#       --cn {{ inventory_hostname }}
+#       --accept-config
+#       --accept-commands
+#       --disable-confd
+#     args:
+#       creates: /var/lib/icinga2/certs/ca.crt
+#     notify: Restart Icinga 2
+
+#  - name: start icinga2
+#    become: yes
+#    service:
+#      name: icinga2
+#      state: started
+#      enabled: yes

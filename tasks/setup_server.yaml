@@ -1,0 +1,262 @@
+---
+
+  # - name: Create docker directories for icinga2-mariadb
+  #   file:
+  #     path: "{{ item }}"
+  #     owner: root
+  #     group: root
+  #     mode: u=rwx,g=rx,o=rx 
+  #     state: directory
+  #   with_items:
+  #     - '{{ ICINGA2_STORAGE_PATH }}/mariadb/var/lib/mysql'
+  #   when: ICINGA2_SETUP_SERVER
+
+  # - name: Remove already existing icinga2-mariadb container
+  #   community.general.docker_container:
+  #     name: icinga2-mariadb
+  #     state: absent
+
+  # - name: Build watchtower lables
+  #   set_fact:
+  #     icinga2_watchtower_lables: "{% if ICINGA2_USE_WATCHTOWER %}{{ ICINGA2_WATCHTOWER_LABEL }}{% else %}{}{% endif %}"
+
+  # - name: Check if password for icinga2-mariadb are defined
+  #   assert:
+  #     that:
+  #       - ICINGA2_MYSQL_ROOT_PASSWORD != ''
+  #       - ICINGA2_MYSQL_PASSWORD != ''
+  #     fail_msg: "Please define ICINGA2_MYSQL_ROOT_PASSWORD and ICINGA2_MYSQL_PASSWORD"
+
+  # - name: Create all necessary network
+  #   community.general.docker_network:
+  #     name: '{{ ICINGA2_NETWORK }}'
+  #   when: ICINGA2_SETUP_SERVER
+
+  # - name: Configure icinga2-mariadb
+  #   community.general.docker_container:
+  #     name: icinga2-mariadb
+  #     image: mariadb:10.5
+  #     restart: yes
+  #     restart_policy: always
+  #     labels: '{{ icinga2_watchtower_lables }}'
+  #     state: started
+  #     volumes:
+  #       - '{{ ICINGA2_STORAGE_PATH }}/mariadb/var/lib/mysql:/var/lib/mysql'
+  #     env:
+  #       MYSQL_ROOT_PASSWORD: '{{ ICINGA2_MYSQL_ROOT_PASSWORD }}'
+  #       MYSQL_DATABASE: '{{ ICINGA2_MYSQL_DATABASE }}'
+  #       MYSQL_USER: '{{ ICINGA2_MYSQL_USER }}'
+  #       MYSQL_PASSWORD: '{{ ICINGA2_MYSQL_PASSWORD }}'
+  #     networks_cli_compatible: yes
+  #     networks:
+  #       - name: '{{ ICINGA2_NETWORK }}'
+  #   when: ICINGA2_SETUP_SERVER
+
+  # - name: Create docker directories for icinga2-automysqlbackup
+  #   file:
+  #     path: "{{ item }}"
+  #     owner: root
+  #     group: root
+  #     mode: u=rwx,g=rx,o=rx 
+  #     state: directory
+  #   with_items:
+  #     - '{{ ICINGA2_STORAGE_PATH }}/automysqlbackup/backup'
+  #   when: ICINGA2_USE_DATABASE_BACKUP and ICINGA2_SETUP_SERVER
+
+  # - name: Remove already existing icinga2-automysqlbackup container
+  #   community.general.docker_container:
+  #     name: icinga2-automysqlbackup
+  #     state: absent
+
+  # - name: Configure automysqlbackup for icinga2-mariadb
+  #   community.general.docker_container:
+  #     name: icinga2-automysqlbackup
+  #     image: selim13/automysqlbackup:2.6-9
+  #     restart: yes
+  #     restart_policy: always
+  #     labels: '{{ icinga2_watchtower_lables }}'
+  #     state: started
+  #     volumes:
+  #       - '{{ ICINGA2_STORAGE_PATH }}/automysqlbackup/backup:/backup'
+  #     env:
+  #       DBHOST: icinga2-mariadb
+  #       USERNAME: root
+  #       PASSWORD: '{{ ICINGA2_MYSQL_ROOT_PASSWORD }}'
+  #       DBNAMES: all
+  #       CRON_SCHEDULE: '0 0 * * *'
+  #       EXTRA_OPTS: '--default-character-set=utf8mb4'
+  #     networks_cli_compatible: yes
+  #     networks:
+  #       - name: '{{ ICINGA2_NETWORK }}'
+  #   when: ICINGA2_USE_DATABASE_BACKUP and ICINGA2_SETUP_SERVER
+
+  # - name: Create docker directories for icinga2 - Part1
+  #   file:
+  #     path: "{{ item }}"
+  #     owner: root
+  #     group: root
+  #     mode: u=rwx,g=rx,o=rx 
+  #     state: directory
+  #   with_items:
+  #     - '{{ ICINGA2_STORAGE_PATH }}/icinga/var/cache/icinga2'
+  #     - '{{ ICINGA2_STORAGE_PATH }}/icinga/etc/apache2/ssl'
+  #     - '{{ ICINGA2_STORAGE_PATH }}/icinga/etc/icinga2'
+  #     - '{{ ICINGA2_STORAGE_PATH }}/icinga/etc/icingaweb2'
+  #     - '{{ ICINGA2_STORAGE_PATH }}/icinga/var/lib/icinga2'
+  #     - '{{ ICINGA2_STORAGE_PATH }}/icinga/var/log/icinga2'
+  #     - '{{ ICINGA2_STORAGE_PATH }}/icinga/var/log/icingaweb2'
+  #     - '{{ ICINGA2_STORAGE_PATH }}/icinga/var/log/mysql'
+  #     - '{{ ICINGA2_STORAGE_PATH }}/icinga/var/spool/icinga2'
+  #     - '{{ ICINGA2_STORAGE_PATH }}/icinga/etc/'
+  #     - '{{ ICINGA2_STORAGE_PATH }}/icinga/etc/icinga2/pki'
+  #   when: ICINGA2_SETUP_SERVER
+
+  # - name: Create docker directories for icinga2 - Part1
+  #   file:
+  #     path: "{{ item }}"
+  #     owner: 33
+  #     group: 33
+  #     mode: u=rwx,g=rwx,o=rx 
+  #     state: directory
+  #   with_items:
+  #     - '{{ ICINGA2_STORAGE_PATH }}/icinga/var/lib/php/sessions'
+  #     - '{{ ICINGA2_STORAGE_PATH }}/icinga/var/log/apache2'
+  #   when: ICINGA2_SETUP_SERVER
+
+  # - name: Configure msmtp for icinga - part1
+  #   template:
+  #     src: templates/msmtprc.j2
+  #     dest: '{{ ICINGA2_STORAGE_PATH }}/icinga/etc/msmtprc'
+  #     owner: root
+  #     group: root
+  #     mode: 0644
+  #   when: ICINGA2_SETUP_SERVER
+
+  # - name: Configure msmtp for icinga - part1
+  #   template:
+  #     src: templates/aliases.j2
+  #     dest: '{{ ICINGA2_STORAGE_PATH }}/icinga/etc/aliases'
+  #     owner: root
+  #     group: root
+  #     mode: 0644
+  #   when: ICINGA2_SETUP_SERVER
+
+  # - name: Build icinga2 labels
+  #   set_fact:
+  #     icinga2_lables: '{% if ICINGA2_USE_TRAEFIK %}{{ icinga2_watchtower_lables | combine(ICINGA2_TRAEFIK_LABLES) }}{% else %}{{ icinga2_watchtower_lables }}{% endif %}'
+
+  # - name: Build icinga2 ports
+  #   set_fact:
+  #     icinga2_ports: '{% if ICINGA2_USE_TRAEFIK %}[]{% else %}{{ ICINGA2_DEFAULT_PORTS }}{% endif %}'
+
+  # - name: Build list of docker networks
+  #   set_fact:
+  #     network_list: "{% set res = [ ICINGA2_NETWORK ] %}{% if ICINGA2_USE_TRAEFIK %}{% if ICINGA2_TRAEFIK_NETWORK not in res %}{% set ignored = res.append(ICINGA2_TRAEFIK_NETWORK) %}{% endif %}{% endif %}{{ res }}"
+
+  # - name: Remove already existing icinga2 container
+  #   community.general.docker_container:
+  #     name: icinga2
+  #     state: absent
+
+  # - name: Configure icinga2
+  #   community.general.docker_container:
+  #     name: icinga2
+  #     hostname: '{{ ICINGA2_FQDN }}'
+  #     image: jordan/icinga2:latest
+  #     restart: yes
+  #     restart_policy: always
+  #     labels: '{{ icinga2_lables }}'
+  #     state: started
+  #     volumes:
+  #       - '{{ ICINGA2_STORAGE_PATH }}/icinga/var/cache/icinga2:/var/cache/icinga2'
+  #       - '{{ ICINGA2_STORAGE_PATH }}/icinga/etc/apache2/ssl:/etc/apache2/ssl'
+  #       - '{{ ICINGA2_STORAGE_PATH }}/icinga/etc/icinga2:/etc/icinga2'
+  #       - '{{ ICINGA2_STORAGE_PATH }}/icinga/etc/icingaweb2:/etc/icingaweb2'
+  #       - '{{ ICINGA2_STORAGE_PATH }}/icinga/var/lib/icinga2:/var/lib/icinga2'
+  #       - '{{ ICINGA2_STORAGE_PATH }}/icinga/var/lib/php/sessions:/var/lib/php/sessions'
+  #       - '{{ ICINGA2_STORAGE_PATH }}/icinga/var/log/apache2:/var/log/apache2'
+  #       - '{{ ICINGA2_STORAGE_PATH }}/icinga/var/log/icinga2:/var/log/icinga2'
+  #       - '{{ ICINGA2_STORAGE_PATH }}/icinga/var/log/icingaweb2:/var/log/icingaweb2'
+  #       - '{{ ICINGA2_STORAGE_PATH }}/icinga/var/log/mysql:/var/log/mysql'
+  #       - '{{ ICINGA2_STORAGE_PATH }}/icinga/var/spool/icinga2:/var/spool/icinga2'
+  #       - '{{ ICINGA2_STORAGE_PATH }}/icinga/etc/msmtprc:/etc/msmtprc:ro'
+  #       - '{{ ICINGA2_STORAGE_PATH }}/icinga/etc/aliases:/etc/aliases:ro'
+  #       - '{{ ICINGA2_STORAGE_PATH }}/icinga/etc/icinga2/pki:/etc/icinga2/pki'
+  #     env:
+  #       ICINGA2_FEATURE_GRAPHITE: '{% if ICINGA2_USE_GRAPHITE %}1{% else %}0{% endif %}'
+  #       ICINGA2_FEATURE_GRAPHITE_HOST: icinga2-graphite
+  #       ICINGA2_FEATURE_GRAPHITE_PORT: '2003'
+  #       ICINGA2_FEATURE_GRAPHITE_URL: http://icinga2-graphite
+  #       ICINGA2_FEATURE_GRAPHITE_SEND_THRESHOLDS: 'true'
+  #       ICINGA2_FEATURE_GRAPHITE_SEND_METADATA: 'false'
+  #       ICINGAWEB2_ADMIN_USER: '{{ ICINGA2_ICINGAWEB2_ADMIN_USER }}'
+  #       ICINGAWEB2_ADMIN_PASS: '{{ ICINGA2_ICINGAWEB2_ADMIN_PASS }}'
+  #       MYSQL_ROOT_PASSWORD: '{{ ICINGA2_MYSQL_ROOT_PASSWORD }}'
+  #       DEFAULT_MYSQL_HOST: icinga2-mariadb
+  #       DEFAULT_MYSQL_USER: '{{ ICINGA2_MYSQL_USER }}'
+  #       DEFAULT_MYSQL_PASS: '{{ ICINGA2_MYSQL_PASSWORD }}'
+  #       TZ: '{{ ICINGA2_TZ }}'
+  #     ports: '{{ icinga2_ports }}'
+  #     networks_cli_compatible: yes
+  #     networks: "{% set res = [] %}{% for network in network_list %}{% set ignored = res.append({'name': network}) %}{% endfor %}{{ res }}"
+  #   when: ICINGA2_SETUP_SERVER
+
+  # - name: Create docker directories for icinga2-graphite
+  #   file:
+  #     path: "{{ item }}"
+  #     owner: root
+  #     group: root
+  #     mode: u=rwx,g=rx,o=rx 
+  #     state: directory
+  #   with_items:
+  #     - '{{ ICINGA2_STORAGE_PATH }}/graphite/opt/graphite/conf'
+  #     - '{{ ICINGA2_STORAGE_PATH }}/graphite/opt/graphite/storage'
+  #     - '{{ ICINGA2_STORAGE_PATH }}/graphite/var/log/graphite'
+  #     - '{{ ICINGA2_STORAGE_PATH }}/graphite/var/log/carbon'
+  #   when: ICINGA2_SETUP_SERVER
+
+  # - name: Configure icinga2-graphite
+  #   community.general.docker_container:
+  #     name: icinga2-graphite
+  #     image: graphiteapp/graphite-statsd:latest
+  #     hostname: icinga2-graphite
+  #     restart: yes
+  #     restart_policy: always
+  #     labels: '{{ icinga2_watchtower_lables }}'
+  #     state: started
+  #     volumes:
+  #       - '{{ ICINGA2_STORAGE_PATH }}/graphite/opt/graphite/conf:/opt/graphite/conf'
+  #       - '{{ ICINGA2_STORAGE_PATH }}/graphite/opt/graphite/storage:/opt/graphite/storage'
+  #       - '{{ ICINGA2_STORAGE_PATH }}/graphite/var/log/graphite:/var/log/graphite'
+  #       - '{{ ICINGA2_STORAGE_PATH }}/graphite/var/log/carbon:/var/log/carbon'
+  #     networks_cli_compatible: yes
+  #     networks:
+  #       - name: '{{ ICINGA2_NETWORK }}'
+  #   when: ICINGA2_SETUP_SERVER
+
+  # - name: Create Icinga 2 PKI ticket
+  #   shell: 'docker exec -it icinga2 /bin/bash -c "icinga2 pki ticket --cn {{ item }} > /etc/icinga2/pki/{{ item }}.ticket"'
+  #   args:
+  #     creates: '{{ ICINGA2_STORAGE_PATH }}/icinga/etc/icinga2/pki/{{ item }}.ticket'
+  #   loop: '{{ ICINGA2_AGENT_LIST }}'
+
+  - name: Create local data directory for icinga2
+    become: false
+    file:
+      path: '{{ item }}'
+      state: directory
+    delegate_to: localhost
+    with_items:
+      - '{{ ICINGA2_LOCAL_DATA_DIR }}/pki'
+      - '{{ ICINGA2_LOCAL_DATA_DIR }}/certs'
+
+  - name: Fetch Icinga 2 PKI ticket
+    fetch:
+      dest: '{{ ICINGA2_LOCAL_DATA_DIR }}/pki'
+      src: '{{ ICINGA2_STORAGE_PATH }}/icinga/etc/icinga2/pki/{{ item }}.ticket'
+    loop: '{{ ICINGA2_AGENT_LIST }}'
+
+  - name: Fetch Icinga 2 master cert
+    fetch:
+      dest: '{{ ICINGA2_LOCAL_DATA_DIR }}/certs'
+      src: '{{ ICINGA2_STORAGE_PATH }}/icinga/var/lib/icinga2/certs/{{ ICINGA2_FQDN }}.crt'
